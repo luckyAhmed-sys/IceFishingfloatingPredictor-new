@@ -2,110 +2,250 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ice Fishing Predictor</title>
-
 <style>
-* {
-    box-sizing: border-box;
-}
-body {
-    margin: 0;
-    background: #071321;
-    color: white;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-}
-.container {
-    max-width: 450px;
-    margin: auto;
-}
-h1 {
-    text-align: center;
-    color: #36d9ff;
-}
-.card {
-    background: #12263a;
-    padding: 20px;
-    border-radius: 15px;
-    margin-top: 20px;
-}
-.signal {
-    text-align: center;
-    font-size: 25px;
-    color: #36e6a0;
-    font-weight: bold;
-    margin: 20px 0;
-}
-button {
-    width: 100%;
-    padding: 14px;
-    background: #09a9e8;
-    border: none;
-    border-radius: 9px;
-    color: white;
-    font-size: 16px;
-    margin-top: 12px;
-}
-input {
-    width: 100%;
-    padding: 13px;
-    border-radius: 8px;
-    border: none;
-    margin-top: 10px;
-}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#071426;color:white;font-family:Arial}
+.container{max-width:520px;margin:auto}
+h1{text-align:center;color:#35c8ff;font-size:25px}
+.card{background:#122941;padding:17px;border-radius:13px;margin:15px 0}
+h2{font-size:18px;margin-top:0}
+button,select{width:100%;padding:13px;border:0;border-radius:8px;margin-top:10px;font-size:15px}
+button{background:#159bd1;color:white;font-weight:bold}
+select{background:white;color:#111}
+.signal{text-align:center;font-size:25px;font-weight:bold;color:#39e6a1;padding:15px 0}
+.small{font-size:12px;color:#a8c1d8;line-height:1.5}
+.row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #36516b}
+.bar{height:8px;background:#263e56;border-radius:8px;margin-top:5px;overflow:hidden}
+.fill{height:100%;background:#24c5e9}
+.item{padding:9px;border-bottom:1px solid #36516b;font-size:14px}
+.danger{background:#b83232}
 </style>
 </head>
-
 <body>
 <div class="container">
 
-<h1>❄ ICE FISHING PREDICTOR</h1>
+<h1>ICE FISHING PREDICTOR</h1>
 
 <div class="card">
-<h3>Next Prediction Signal</h3>
-<div class="signal" id="signal">READY</div>
-<p id="confidence">Waiting for game results...</p>
+<h2>Next Prediction Signal</h2>
+<div class="signal" id="signal">WAITING FOR DATA</div>
+<div id="confidence" class="small" style="text-align:center">
+Add game results to start analysis.
+</div>
 <button onclick="predict()">GENERATE SIGNAL</button>
 </div>
 
 <div class="card">
-<h3>Enter Previous Result</h3>
-<input type="text" id="result" placeholder="Enter game result">
+<h2>Add Previous Game Result</h2>
+<select id="result">
+<option>White Leaf</option>
+<option>Gray Leaf</option>
+<option>Lil Blues</option>
+<option>Big Oranges</option>
+<option>Huge Reds</option>
+</select>
 <button onclick="addResult()">ADD RESULT</button>
-<h3>Results History</h3>
-<div id="history">No results yet</div>
+</div>
+
+<div class="card">
+<h2>Probability Analysis</h2>
+<div id="probabilities">No analysis yet.</div>
+</div>
+
+<div class="card">
+<h2>Prediction Accuracy</h2>
+<div id="accuracy">Predictions: 0 | Correct: 0</div>
+</div>
+
+<div class="card">
+<h2>Results History</h2>
+<div id="history">No results added.</div>
+<button class="danger" onclick="clearData()">CLEAR ALL DATA</button>
 </div>
 
 </div>
 
 <script>
-let results = [];
+const outcomes=[
+"White Leaf",
+"Gray Leaf",
+"Lil Blues",
+"Big Oranges",
+"Huge Reds"
+];
 
-function addResult() {
-    let value = document.getElementById("result").value.trim();
-    if (!value) return;
+let results=JSON.parse(localStorage.getItem("iceResultsV2")||"[]");
+let predictions=JSON.parse(localStorage.getItem("icePredictionsV2")||"[]");
+let pending=JSON.parse(localStorage.getItem("icePendingV2")||"null");
 
-    results.push(value);
-    document.getElementById("history").innerHTML =
-        results.map((r, i) => (i + 1) + ". " + r).join("<br>");
-
-    document.getElementById("result").value = "";
+function save(){
+ localStorage.setItem("iceResultsV2",JSON.stringify(results));
+ localStorage.setItem("icePredictionsV2",JSON.stringify(predictions));
+ localStorage.setItem("icePendingV2",JSON.stringify(pending));
 }
 
-function predict() {
-    if (results.length < 5) {
-        document.getElementById("signal").innerText = "MORE DATA NEEDED";
-        document.getElementById("confidence").innerText =
-            "Enter at least 5 previous results.";
-        return;
-    }
+function addResult(){
+ const value=document.getElementById("result").value;
 
-    document.getElementById("signal").innerText = "DATA COLLECTED";
-    document.getElementById("confidence").innerText =
-        "Historical data ready. No guaranteed prediction.";
+ if(pending){
+  pending.actual=value;
+  pending.correct=pending.predicted===value;
+  predictions.push(pending);
+  pending=null;
+ }
+
+ results.unshift({
+  value:value,
+  time:new Date().toLocaleString()
+ });
+
+ save();
+ update();
+ document.getElementById("signal").innerText="RESULT SAVED";
+ document.getElementById("confidence").innerText=
+ "Result recorded. Generate the next signal when ready.";
 }
+
+function calculate(){
+ const total=results.length;
+ const counts={};
+ const scores={};
+
+ outcomes.forEach(x=>{counts[x]=0;scores[x]=0});
+
+ results.forEach(r=>counts[r.value]++);
+
+ const last=results[0]?.value;
+
+ // Long-term frequency with smoothing
+ outcomes.forEach(x=>{
+  scores[x]+=0.20*(counts[x]+1)/(total+5);
+ });
+
+ // Recent result windows
+ [10,20,50].forEach((windowSize,index)=>{
+  const sample=results.slice(0,windowSize);
+  if(!sample.length)return;
+  const weight=[0.35,0.25,0.10][index];
+  outcomes.forEach(x=>{
+   const count=sample.filter(r=>r.value===x).length;
+   scores[x]+=weight*(count+1)/(sample.length+5);
+  });
+ });
+
+ // Previous-result transition analysis
+ if(last){
+  const transitions={};
+  outcomes.forEach(x=>transitions[x]=0);
+  let transitionTotal=0;
+
+  for(let i=1;i<results.length;i++){
+   if(results[i].value===last){
+    transitions[results[i-1].value]++;
+    transitionTotal++;
+   }
+  }
+
+  if(transitionTotal>0){
+   outcomes.forEach(x=>{
+    scores[x]+=0.10*(transitions[x]+1)/(transitionTotal+5);
+   });
+  }
+ }
+
+ const sum=Object.values(scores).reduce((a,b)=>a+b,0);
+ const probabilities={};
+
+ outcomes.forEach(x=>{
+  probabilities[x]=scores[x]/sum*100;
+ });
+
+ return probabilities;
+}
+
+function predict(){
+ if(results.length<10){
+  document.getElementById("signal").innerText="MORE DATA NEEDED";
+  document.getElementById("confidence").innerText=
+  "Add at least 10 actual game results before generating a signal.";
+  return;
+ }
+
+ const probabilities=calculate();
+ const ranked=outcomes.slice().sort(
+  (a,b)=>probabilities[b]-probabilities[a]
+ );
+
+ const best=ranked[0];
+ const second=ranked[1];
+ const confidence=probabilities[best].toFixed(1);
+
+ pending={
+  predicted:best,
+  probability:confidence,
+  time:new Date().toLocaleString()
+ };
+
+ save();
+
+ document.getElementById("signal").innerText=best.toUpperCase();
+ document.getElementById("confidence").innerText=
+ "Estimated probability: "+confidence+
+ "% | Next result is uncertain. Not a guaranteed prediction.";
+
+ showProbabilities(probabilities);
+}
+
+function showProbabilities(p){
+ document.getElementById("probabilities").innerHTML=
+ outcomes.slice().sort((a,b)=>p[b]-p[a]).map(x=>
+ `<div class="item">
+ <div class="row"><span>${x}</span><b>${p[x].toFixed(1)}%</b></div>
+ <div class="bar"><div class="fill" style="width:${p[x]}%"></div></div>
+ </div>`
+ ).join("");
+}
+
+function update(){
+ document.getElementById("history").innerHTML=
+ results.length?
+ results.slice(0,50).map((r,i)=>
+ `<div class="item">${i+1}. ${r.value}
+ <div class="small">${r.time}</div></div>`
+ ).join("")
+ :"No results added.";
+
+ const correct=predictions.filter(p=>p.correct).length;
+ const checked=predictions.length;
+ const rate=checked?(correct/checked*100).toFixed(1):0;
+
+ document.getElementById("accuracy").innerHTML=
+ "Checked predictions: "+checked+
+ "<br>Correct: "+correct+
+ "<br>Accuracy: "+rate+"%"+
+ (pending?"<br>Pending prediction: "+pending.predicted:"");
+
+ if(results.length>=10){
+  showProbabilities(calculate());
+ }
+}
+
+function clearData(){
+ if(confirm("Delete all results and prediction history?")){
+  results=[];
+  predictions=[];
+  pending=null;
+  save();
+  document.getElementById("signal").innerText="WAITING FOR DATA";
+  document.getElementById("confidence").innerText="Add game results to start.";
+  document.getElementById("probabilities").innerText="No analysis yet.";
+  update();
+ }
+}
+
+update();
 </script>
-
 </body>
 </html>
