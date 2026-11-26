@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ice Fishing Predictor</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    background: #071321;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+.container {
+    max-width: 450px;
+    margin: auto;
+}
+h1 {
+    text-align: center;
+    color: #36d9ff;
+}
+.card {
+    background: #12263a;
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+}
+.signal {
+    text-align: center;
+    font-size: 25px;
+    color: #36e6a0;
+    font-weight: bold;
+    margin: 20px 0;
+}
+button {
+    width: 100%;
+    padding: 14px;
+    background: #09a9e8;
+    border: none;
+    border-radius: 9px;
+    color: white;
+    font-size: 16px;
+    margin-top: 12px;
+}
+input {
+    width: 100%;
+    padding: 13px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>❄ ICE FISHING PREDICTOR</h1>
+
+<div class="card">
+<h3>Next Prediction Signal</h3>
+<div class="signal" id="signal">READY</div>
+<p id="confidence">Waiting for game results...</p>
+<button onclick="predict()">GENERATE SIGNAL</button>
+</div>
+
+<div class="card">
+<h3>Enter Previous Result</h3>
+<input type="text" id="result" placeholder="Enter game result">
+<button onclick="addResult()">ADD RESULT</button>
+<h3>Results History</h3>
+<div id="history">No results yet</div>
+</div>
+
+</div>
+
+<script>
+let results = [];
+
+function addResult() {
+    let value = document.getElementById("result").value.trim();
+    if (!value) return;
+
+    results.push(value);
+    document.getElementById("history").innerHTML =
+        results.map((r, i) => (i + 1) + ". " + r).join("<br>");
+
+    document.getElementById("result").value = "";
+}
+
+function predict() {
+    if (results.length < 5) {
+        document.getElementById("signal").innerText = "MORE DATA NEEDED";
+        document.getElementById("confidence").innerText =
+            "Enter at least 5 previous results.";
+        return;
+    }
+
+    document.getElementById("signal").innerText = "DATA COLLECTED";
+    document.getElementById("confidence").innerText =
+        "Historical data ready. No guaranteed prediction.";
+}
+</script>
+
+</body>
+</html>
