@@ -1,6 +1,6 @@
 name: Build Ice Fishing Predictor APK
 
-on:
+"on":
   workflow_dispatch:
   push:
     branches: [main]
