@@ -7,6 +7,7 @@
     "build": "mkdir -p www && cp index.html www/index.html"
   },
   "dependencies": {
+    "@capacitor/android": "^7.6.11",
     "@capacitor/core": "^7.4.0"
   },
   "devDependencies": {
