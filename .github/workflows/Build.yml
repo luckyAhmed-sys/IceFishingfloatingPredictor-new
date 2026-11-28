@@ -25,7 +25,7 @@ jobs:
           java-version: 21
 
       - name: Install Plugin Dependencies
-        run: npm install --prefix ice-fishing-auto-detection
+        run: rm -rf ice-fishing-auto-detection/node_modules ice-fishing-auto-detection/package-lock.json && npm install --include=optional --prefix ice-fishing-auto-detection
 
       - name: Build Custom Plugin
         run: npm run build --prefix ice-fishing-auto-detection
