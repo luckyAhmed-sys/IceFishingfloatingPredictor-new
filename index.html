@@ -27,6 +27,11 @@ select{background:white;color:#111}
 <div class="container">
 
 <h1>ICE FISHING PREDICTOR</h1>
+<div class="card">
+<h2>Automatic Screen Detection</h2>
+<div id="detectionStatus" class="small">Detection is OFF</div>
+<button onclick="startAutoDetection()">START AUTO DETECTION</button>
+</div>
 
 <div class="card">
 <h2>Next Prediction Signal</h2>
@@ -247,5 +252,23 @@ function clearData(){
 
 update();
 </script>
-</body>
+<script src="native.js"></script>
+
+<script>
+async function startAutoDetection() {
+    const status = document.getElementById("detectionStatus");
+    status.innerText = "Requesting permission...";
+
+    try {
+        const result = await window.startIceFishingDetection();
+        status.innerText = result.success
+            ? "SCREEN CAPTURE STARTED"
+            : "Detection failed";
+    } catch (error) {
+        status.innerText = "Permission denied or capture failed";
+        console.error(error);
+    }
+}
+</script>
+\n</body>
 </html>

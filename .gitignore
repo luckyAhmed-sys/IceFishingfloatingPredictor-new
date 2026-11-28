@@ -1,0 +1,6 @@
+/node_modules/
+/android/
+/www/
+*.log
+.DS_Store
+/ice-fishing-auto-detection/example-app/

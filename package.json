@@ -4,13 +4,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p www && cp index.html www/index.html"
+    "build": "mkdir -p www && cp index.html www/index.html && esbuild src/native.js --bundle --outfile=www/native.js --platform=browser"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.11",
-    "@capacitor/core": "^7.4.0"
+    "@capacitor/core": "^7.6.11",
+    "ice-fishing-auto-detection": "file:ice-fishing-auto-detection"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.4.0"
+    "@capacitor/cli": "^7.6.11",
+    "esbuild": "^0.28.2"
   }
 }

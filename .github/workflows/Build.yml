@@ -3,7 +3,7 @@ name: Build Ice Fishing Predictor APK
 "on":
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, auto-detection-development]
 
 jobs:
   build:
@@ -24,12 +24,16 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Install dependencies
-        run: |
-          npm install
-          npm install @capacitor/android@^7.4.0
+      - name: Install Plugin Dependencies
+        run: npm install --prefix ice-fishing-auto-detection
 
-      - name: Build web app
+      - name: Build Custom Plugin
+        run: npm run build --prefix ice-fishing-auto-detection
+
+      - name: Install App Dependencies
+        run: npm install
+
+      - name: Build Web App
         run: npm run build
 
       - name: Add Android
