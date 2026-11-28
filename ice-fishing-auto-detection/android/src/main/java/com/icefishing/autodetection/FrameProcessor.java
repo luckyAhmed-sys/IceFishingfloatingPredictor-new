@@ -111,4 +111,4 @@ public class FrameProcessor {
 
         return calculateFrameDifference(previous, current) >= 12.0f;
     }
-\n}
+}
