@@ -18,4 +18,14 @@ export class IceFishingAutoDetectionWeb extends WebPlugin implements IceFishingA
       message: 'Screen capture is only available on Android.'
     };
   }
+
+  async stopScreenCapture(): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return {
+      success: false,
+      message: 'Screen capture is only available on Android.'
+    };
+  }
 }
